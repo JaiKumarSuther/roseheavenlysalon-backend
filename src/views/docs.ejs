@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>API Documentation - Professional</title>
+  <style>
+    /* Minimal subset to render properly; full template can be expanded later */
+    body{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#212529;font-size:13px;margin:0}
+    header{background:#f8f9fa;border-bottom:1px solid #dee2e6}
+    .header-content{max-width:1200px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo-icon{width:32px;height:32px;border-radius:6px;background:#007bff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+    .theme-selector{position:relative}
+    .theme-dropdown{background:#fff;border:1px solid #dee2e6;border-radius:6px;padding:6px 8px;cursor:pointer;font-size:12px}
+    .theme-options{position:absolute;top:100%;right:0;background:#fff;border:1px solid #dee2e6;border-radius:6px;min-width:200px;box-shadow:0 6px 20px rgba(0,0,0,.1);display:none}
+    .theme-options.active{display:block}
+    .theme-option{padding:8px 10px;cursor:pointer}
+    .container{max-width:1200px;margin:0 auto;padding:16px}
+    .api-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:12px 0;background:#fff;border:1px solid #dee2e6;border-radius:6px;padding:12px}
+    .metric-item{background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;text-align:center;padding:10px}
+    .search-input{width:100%;padding:8px 10px;border:1px solid #dee2e6;border-radius:6px}
+    .endpoint{border:1px solid #dee2e6;border-radius:6px;margin:8px 0;background:#fff}
+    .endpoint-header{padding:10px;display:flex;gap:8px;align-items:center;border-bottom:1px solid #e9ecef;cursor:pointer}
+    .endpoint-path{background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;padding:2px 6px;font-family:monospace;color:#007bff}
+    .method{padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;color:#fff}
+    .GET{background:#28a745}.POST{background:#17a2b8}.PUT{background:#ffc107;color:#000}.DELETE{background:#dc3545}
+    .endpoint-content{display:none}
+    .endpoint.expanded .endpoint-content{display:block}
+    .code-block{background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;margin:10px}
+    .code-block pre{padding:10px;margin:0;white-space:pre-wrap}
+    .try-it-section{background:#fff;border-top:1px solid #e9ecef;padding:10px}
+    .form-input,.form-textarea{width:100%;padding:8px;border:1px solid #dee2e6;border-radius:6px;font-family:monospace}
+    .send-request-btn{background:#28a745;color:#fff;border:none;padding:8px 10px;border-radius:6px;cursor:pointer}
+    .response-content{background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:10px;white-space:pre-wrap}
+  </style>
+</head>
+<body data-theme="light">
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">API</div>
+        <div>
+          <h1 style="font-size:16px;margin:0">API Documentation</h1>
+          <p style="margin:0;color:#6c757d;font-size:12px">Professional REST API Reference</p>
+        </div>
+      </div>
+      <div class="theme-selector">
+        <div class="theme-dropdown" onclick="document.getElementById('themeOptions').classList.toggle('active')">🎨 <span id="currentTheme">Light</span> ▼</div>
+        <div class="theme-options" id="themeOptions">
+          <div class="theme-option" onclick="setTheme('light','Light')">Light</div>
+          <div class="theme-option" onclick="setTheme('dark','Dark')">Dark</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="api-metrics">
+      <div class="metric-item"><div class="metric-value" style="font-weight:700"> <%= endpoints.length %> </div><div class="metric-label">Total APIs</div></div>
+      <div class="metric-item"><div class="metric-value" style="font-weight:700"> <%= endpoints.filter(e=>e.method==='GET').length %> </div><div class="metric-label">GET</div></div>
+      <div class="metric-item"><div class="metric-value" style="font-weight:700"> <%= endpoints.filter(e=>e.method==='POST').length %> </div><div class="metric-label">POST</div></div>
+    </div>
+
+    <input id="searchInput" class="search-input" placeholder="Search endpoints..." />
+
+    <div id="endpointsContainer">
+      <% const grouped = {}; endpoints.forEach(ep=>{ const cat=ep.path.split('/')[2]||'general'; (grouped[cat]=grouped[cat]||[]).push(ep); }); Object.keys(grouped).forEach(cat=>{ %>
+        <h2 style="margin:16px 0 8px"> <%= cat.toUpperCase() %> </h2>
+        <% grouped[cat].forEach((endpoint,idx)=>{ const id = `${cat}-${idx}` %>
+          <div class="endpoint" data-method="<%= endpoint.method %>" data-path="<%= endpoint.path %>" data-description="<%= endpoint.description %>">
+            <div class="endpoint-header" onclick="toggleEndpoint('<%= id %>')">
+              <span class="method <%= endpoint.method %>"><%= endpoint.method %></span>
+              <code class="endpoint-path"><%= endpoint.path %></code>
+              <span style="margin-left:auto;color:#6c757d;font-size:12px">~<%= Math.floor(Math.random()*100)+20 %>ms</span>
+            </div>
+            <div id="content-<%= id %>" class="endpoint-content">
+              <div style="padding:10px;color:#495057"><%= endpoint.description %></div>
+              <% if (endpoint.params && endpoint.params.length) { %>
+                <div style="padding:0 10px 10px">
+                  <div style="font-weight:600;margin-bottom:6px">Body Parameters</div>
+                  <ul style="margin:0;padding-left:18px">
+                    <% endpoint.params.forEach(p=>{ %><li><code><%= p %></code></li><% }) %>
+                  </ul>
+                </div>
+              <% } %>
+              <% if (endpoint.queryParams && endpoint.queryParams.length) { %>
+                <div style="padding:0 10px 10px">
+                  <div style="font-weight:600;margin-bottom:6px">Query Parameters</div>
+                  <ul style="margin:0;padding-left:18px">
+                    <% endpoint.queryParams.forEach(p=>{ %><li><code><%= p %></code></li><% }) %>
+                  </ul>
+                </div>
+              <% } %>
+              <% if (endpoint.sampleRequest && Object.keys(endpoint.sampleRequest).length) { %>
+                <div class="code-block" data-title="Sample Request"><pre><%= JSON.stringify(endpoint.sampleRequest,null,2) %></pre></div>
+              <% } %>
+              <% if (endpoint.sampleResponse) { %>
+                <div class="code-block" data-title="Sample Response"><pre><%= JSON.stringify(endpoint.sampleResponse,null,2) %></pre></div>
+              <% } %>
+              <div class="try-it-section">
+                <button class="send-request-btn" onclick="openTry('<%= id %>')">Try It Out</button>
+                <div id="try-<%= id %>" style="display:none;margin-top:8px">
+                  <form onsubmit="return sendRequest(event,'<%= endpoint.method %>','<%= endpoint.path %>','<%= id %>')">
+                    <% if (endpoint.method==='GET' || endpoint.method==='DELETE') { if (endpoint.queryParams&&endpoint.queryParams.length) { endpoint.queryParams.forEach(p=>{ %>
+                      <div style="margin:6px 0"><label style="display:block;font-weight:600"><%= p %></label><input class="form-input" name="<%= p %>"/></div>
+                    <% }) } else { %>
+                      <div style="color:#6c757d;font-style:italic">No query parameters.</div>
+                    <% } } else { %>
+                      <div style="margin:6px 0"><label style="display:block;font-weight:600">Request Body (JSON)</label><textarea name="body" rows="6" class="form-textarea"><%= JSON.stringify(endpoint.sampleRequest||{},null,2) %></textarea></div>
+                    <% } %>
+                    <button type="submit" class="send-request-btn">Send Request</button>
+                  </form>
+                  <div id="response-<%= id %>" class="response-content" style="margin-top:8px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }) }) %>
+    </div>
+  </div>
+
+  <script>
+    function setTheme(key,label){ document.getElementById('currentTheme').innerText=label; document.getElementById('themeOptions').classList.remove('active'); }
+    function toggleEndpoint(id){ const ep=document.getElementById('content-'+id).closest('.endpoint'); ep.classList.toggle('expanded'); }
+    function openTry(id){ const el=document.getElementById('try-'+id); el.style.display = el.style.display==='none'?'block':'none'; }
+    document.getElementById('searchInput').addEventListener('input',function(){ const q=this.value.toLowerCase(); document.querySelectorAll('.endpoint').forEach(ep=>{ const p=ep.dataset.path.toLowerCase(); const m=ep.dataset.method.toLowerCase(); const d=ep.dataset.description.toLowerCase(); ep.style.display=(p.includes(q)||m.includes(q)||d.includes(q))?'block':'none'; }); });
+    async function sendRequest(event,method,path,id){ event.preventDefault(); const form=event.target; const base=location.origin; let url=base+path; const opts={ method, headers:{'Content-Type':'application/json'} }; if(method==='GET'||method==='DELETE'){ const fd=new FormData(form); const params=new URLSearchParams(); for(const [k,v] of fd.entries()){ if(v.trim()) params.append(k,v); } const qs=params.toString(); if(qs) url+=`?${qs}`; } else { const t=form.querySelector('textarea[name="body"]'); if(t&&t.value.trim()){ try{ opts.body=JSON.stringify(JSON.parse(t.value)); }catch(e){ alert('Invalid JSON: '+e.message); return false; } } } const res=await fetch(url,opts); const ct=res.headers.get('content-type')||''; const text = ct.includes('application/json')? JSON.stringify(await res.json(),null,2) : await res.text(); document.getElementById('response-'+id).textContent = `HTTP ${res.status} ${res.statusText}\n${text}`; return false; }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>API Module Index</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #ffffff; color: #212529; margin: 0; }
+    header { background: #f8f9fa; padding: 1rem; border-bottom: 1px solid #dee2e6; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .logo { font-weight: 600; font-size: 1.25rem; }
+    .stats { font-size: 0.875rem; color: #6c757d; }
+    main { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+    h1 { font-size: 2rem; margin-bottom: 1rem; }
+    .module-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .module-card { background: #ffffff; border: 1px solid #dee2e6; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); transition: box-shadow 0.2s; }
+    .module-card:hover { box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); }
+    .module-card a { text-decoration: none; color: #007bff; font-weight: 600; font-size: 1.125rem; }
+    .module-card p { color: #6c757d; margin-top: 0.5rem; font-size: 0.875rem; }
+    footer { text-align: center; padding: 1rem; font-size: 0.75rem; color: #868e96; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">🚀 API</div>
+    <div class="stats"><%= modules.length %> Modules Available</div>
+  </header>
+  <main>
+    <h1>API Module Index</h1>
+    <div class="module-list">
+      <% modules.forEach(module => { %>
+        <div class="module-card">
+          <a href="<%= module.link %>"><%= module.name %> Module</a>
+          <p><%= module.description %></p>
+        </div>
+      <% }) %>
+    </div>
+  </main>
+  <footer>© <%= new Date().getFullYear() %> API. All rights reserved.</footer>
+</body>
+</html>
+

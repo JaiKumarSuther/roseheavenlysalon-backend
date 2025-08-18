@@ -1,0 +1,58 @@
+// Prisma schema for Rose Heavenly Salon backend
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  firstname String?
+  lastname  String?
+  username  String    @unique
+  email     String    @unique
+  address1  String?
+  phone     String?
+  password  String
+  code      Int       @default(0)
+  status    String    @default("notverified") // 'verified' | 'notverified'
+  user_type String    @default("user")        // 'user' | 'admin'
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  events    Event[]
+  @@map("users")
+}
+
+model Event {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String
+  // MySQL TIME and DATE columns mapping to Prisma
+  time      DateTime @db.Time
+  date      DateTime @db.Date
+  date2     String?  // kept for compatibility (e.g., 'Y-F-j')
+  service1  String
+  service2  String
+  remarks   String?   // e.g., 'done', 'cancelled', 'rescheduled'
+  status    Int       @default(1) // 1 active, 0 inactive
+
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    Int?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  @@map("events")
+}
+
+model Image {
+  id      Int    @id @default(autoincrement())
+  img_url String
+  @@map("img_table")
+}
+

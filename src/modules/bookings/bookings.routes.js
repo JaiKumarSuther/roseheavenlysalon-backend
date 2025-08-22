@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as controller from './bookings.controller.js';
-import { requireAuth, requireAdmin } from '../../middleware/auth.js';
+import { requireAuth, requireAdmin, optionalAuth } from '../../middleware/auth.js';
 import { z } from 'zod';
 import { validate } from '../../middleware/validate.js';
 
@@ -104,12 +104,57 @@ export const endpoints = [
 const createSchema = z.object({
   name: z.string().min(1),
   phone: z.string().min(5),
-  time: z.string().regex(/^\d{2}:\d{2}$/),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  time: z.string().regex(/^\d{2}:\d{2}$/).refine((time) => {
+    // Validate business hours: 9:00 AM to 12:00 AM (midnight)
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    // Check if time is in 30-minute intervals
+    if (minutes !== 0 && minutes !== 30) {
+      return false;
+    }
+    
+    // Check if time is within business hours
+    // Valid hours: 9-23 (9 AM to 11 PM) or 0 (midnight)
+    if (hours < 9 && hours !== 0) {
+      return false;
+    }
+    
+    return true;
+  }, {
+    message: "Time must be between 9:00 AM and 12:00 AM in 30-minute intervals"
+  }),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((date) => {
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Check if date is not in the past
+    if (selectedDate < today) {
+      return false;
+    }
+    
+    // Check if not weekend (Saturday = 6, Sunday = 0)
+    const dayOfWeek = selectedDate.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return false;
+    }
+    
+    return true;
+  }, {
+    message: "Date must be a future weekday (Monday-Friday)"
+  }),
   service1: z.string().min(1),
-  service2: z.string().min(1),
+  service2: z.string().optional(),
+  selectedServices: z.array(z.object({
+    key: z.string(),
+    categoryId: z.string(),
+    name: z.string(),
+    price: z.number(),
+    category: z.string()
+  })).optional(),
+  totalPrice: z.number().optional(),
 });
-router.post('/', validate(createSchema), controller.createBooking);
+router.post('/', optionalAuth, validate(createSchema), controller.createBooking);
 
 router.get('/me', requireAuth, controller.listMyBookings);
 router.post(

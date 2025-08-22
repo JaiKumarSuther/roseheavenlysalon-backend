@@ -2,10 +2,36 @@ import * as service from './bookings.service.js';
 
 export async function createBooking(req, res) {
   try {
-    const { name, phone, time, date, service1, service2, email } = req.body;
-    const booking = await service.create({ name, phone, time, date, service1, service2, email });
+    console.log('Received booking request:', req.body);
+    
+    const { name, phone, time, date, service1, service2, email, selectedServices, totalPrice } = req.body;
+    
+    // If user is authenticated, associate booking with user
+    let userId = null;
+    let userEmail = email;
+    
+    if (req.user) {
+      userId = req.user.id;
+      userEmail = req.user.email;
+    }
+    
+    const booking = await service.create({ 
+      name, 
+      phone, 
+      time, 
+      date, 
+      service1, 
+      service2, 
+      email: userEmail,
+      userId,
+      selectedServices,
+      totalPrice
+    });
+    
+    console.log('Booking created successfully:', booking);
     return res.status(201).json(booking);
   } catch (e) {
+    console.error('Error creating booking:', e);
     return res.status(500).json({ message: 'Failed to create booking', error: e.message });
   }
 }

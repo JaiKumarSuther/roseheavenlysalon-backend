@@ -1,6 +1,6 @@
 import { prisma } from '../../config/prisma.js';
 
-export async function create({ user, name, phone, time, date, service1, service2 }) {
+export async function create({ name, phone, time, date, service1, service2, email = "guest@example.com" }) {
   const parsedTime = new Date(`1970-01-01T${time}:00`);
   const parsedDate = new Date(date);
   const y = parsedDate.getUTCFullYear();
@@ -11,14 +11,13 @@ export async function create({ user, name, phone, time, date, service1, service2
   return prisma.event.create({
     data: {
       name,
-      email: user.email,
+      email,
       phone,
       time: parsedTime,
       date: parsedDate,
       date2,
       service1,
       service2,
-      user: { connect: { id: user.id } },
     },
   });
 }
@@ -27,12 +26,13 @@ export function listMine(user) {
   return prisma.event.findMany({ where: { email: user.email, status: 1 }, orderBy: { date: 'asc' } });
 }
 
-export async function cancelByDateTime(user, date, time) {
+export async function cancelByDateTime(user, date, time, remarks = 'cancelled') {
   const parsedDate = new Date(date);
-  const parsedTime = new Date(`1970-01-01T${time}:00Z`);
+  // Align with how times are stored (no explicit timezone suffix)
+  const parsedTime = new Date(`1970-01-01T${time}:00`);
   return prisma.event.updateMany({
     where: { email: user.email, date: parsedDate, time: parsedTime, status: 1 },
-    data: { status: 0, remarks: 'canceled' },
+    data: { status: 0, remarks },
   });
 }
 

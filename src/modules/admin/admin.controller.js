@@ -12,4 +12,10 @@ export async function updatePromoImage(req, res) {
   return res.json(updated);
 }
 
+export async function registerAdmin(req, res) {
+  const result = await service.registerAdmin(req.body);
+  if (result.error) return res.status(400).json({ message: result.error });
+  return res.status(201).json(result.user);
+}
+
 

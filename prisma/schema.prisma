@@ -19,7 +19,7 @@ model User {
   phone     String?
   password  String
   code      Int       @default(0)
-  status    String    @default("notverified") // 'verified' | 'notverified'
+
   user_type String    @default("user")        // 'user' | 'admin'
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

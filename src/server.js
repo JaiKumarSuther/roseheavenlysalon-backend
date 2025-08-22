@@ -13,11 +13,33 @@ import calendarRoutes from './modules/calendar/calendar.routes.js';
 import usersRoutes from './modules/users/users.routes.js';
 import uploadsRoutes from './modules/uploads/uploads.routes.js';
 import docsRoutes from './modules/docs/docs.routes.js';
+import { getEndpoints } from './modules/docs/docs.service.js';
 
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost on any port for development
+    if (origin.match(/^https?:\/\/localhost:\d+$/) || 
+        origin.match(/^https?:\/\/127\.0\.0\.1:\d+$/)) {
+      return callback(null, true);
+    }
+    
+    // Allow specific production domains if needed
+    if (origin === process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
@@ -25,16 +47,17 @@ app.use(morgan('dev'));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// EJS view engine
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+// Static public assets (docs UI, etc.)
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 const uploadDir = process.env.UPLOAD_DIR || 'uploads';
 app.use(`/static/${uploadDir}`, express.static(path.join(__dirname, `../${uploadDir}`)));
 
-// Root route -> docs index
+// Root route -> JSON listing of all endpoints
 app.get('/', (req, res) => {
-  res.redirect('/docs');
+  const endpoints = getEndpoints();
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.json({ baseUrl, endpoints });
 });
 
 app.get('/health', async (_req, res) => {
@@ -54,7 +77,7 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/uploads', uploadsRoutes);
 
-// Docs UI
+// Docs UI and JSON (no view engine)
 app.use('/docs', docsRoutes);
 
 // 404 handler for API

@@ -7,19 +7,20 @@ import { validate } from "../../middleware/validate.js";
 const router = Router();
 
 // Module docs (always at top)
-const endpoints = [
+export const endpoints = [
   {
     path: "/api/auth/signup",
     method: "POST",
     description: "Register user and send OTP",
-    params: [
-      "firstname",
-      "lastname",
-      "username",
-      "email",
-      "address",
-      "phone",
-      "password",
+    params: ["firstname","lastname","username","email","address","phone","password"],
+    attributes: [
+      { name: "firstname", in: "body", type: "string", required: true, description: "First name of the user", example: "Jane" },
+      { name: "lastname", in: "body", type: "string", required: true, description: "Last name of the user", example: "Doe" },
+      { name: "username", in: "body", type: "string", required: true, description: "Unique username", example: "jane" },
+      { name: "email", in: "body", type: "string", required: true, description: "Valid email address", example: "jane@example.com" },
+      { name: "address", in: "body", type: "string", required: true, description: "Street address", example: "123 St" },
+      { name: "phone", in: "body", type: "string", required: true, description: "Phone number", example: "0917..." },
+      { name: "password", in: "body", type: "string", required: true, description: "Password (min 8 chars)", example: "secret123" }
     ],
     sampleRequest: {
       firstname: "Jane",
@@ -31,7 +32,7 @@ const endpoints = [
       password: "secret123",
     },
     sampleResponse: {
-      message: "Signup successful, verification code sent",
+      message: "Signup successful",
       userId: 1,
     },
   },
@@ -40,14 +41,21 @@ const endpoints = [
     method: "POST",
     description: "Verify OTP and return JWT",
     params: ["otp"],
+    attributes: [
+      { name: "otp", in: "body", type: "string|number", required: true, description: "6-digit code sent via email", example: 123456 }
+    ],
     sampleRequest: { otp: 123456 },
-    sampleResponse: { message: "Verified", token: "<jwt>" },
+    sampleResponse: { message: "OTP verified", token: "<jwt>" },
   },
   {
     path: "/api/auth/login",
     method: "POST",
     description: "Login and return JWT",
     params: ["email", "password"],
+    attributes: [
+      { name: "email", in: "body", type: "string", required: true, description: "Registered email", example: "jane@example.com" },
+      { name: "password", in: "body", type: "string", required: true, description: "Password", example: "secret123" }
+    ],
     sampleRequest: { email: "jane@example.com", password: "secret123" },
     sampleResponse: { token: "<jwt>" },
   },
@@ -56,6 +64,9 @@ const endpoints = [
     method: "POST",
     description: "Send password reset OTP",
     params: ["email"],
+    attributes: [
+      { name: "email", in: "body", type: "string", required: true, description: "Email to send reset OTP", example: "jane@example.com" }
+    ],
     sampleRequest: { email: "jane@example.com" },
     sampleResponse: {
       message:
@@ -67,6 +78,11 @@ const endpoints = [
     method: "POST",
     description: "Reset password using OTP",
     params: ["email", "otp", "password"],
+    attributes: [
+      { name: "email", in: "body", type: "string", required: true, description: "Registered email", example: "jane@example.com" },
+      { name: "otp", in: "body", type: "string|number", required: true, description: "OTP received for reset", example: 123456 },
+      { name: "password", in: "body", type: "string", required: true, description: "New password (min 8 chars)", example: "newPass123" }
+    ],
     sampleRequest: {
       email: "jane@example.com",
       otp: 123456,
@@ -82,18 +98,18 @@ const endpoints = [
     method: "GET",
     description: "Get current user",
     params: [],
+    attributes: [],
     sampleRequest: {},
     sampleResponse: { id: 1, email: "jane@example.com" },
   },
 ];
-router.get("/docs", (req, res) => res.render("docs", { endpoints }));
 
 const signupSchema = z.object({
   firstname: z.string().min(1),
   lastname: z.string().min(1),
   username: z.string().min(3),
   email: z.string().email(),
-  address: z.string().min(1),
+  address: z.string().optional().default("Not provided"),
   phone: z.string().min(5),
   password: z.string().min(8),
 });

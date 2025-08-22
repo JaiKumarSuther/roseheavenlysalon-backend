@@ -8,7 +8,7 @@ export async function getCalendar(req, res) {
 export async function getEventsByDate(req, res) {
   const { date } = req.query; // yyyy-mm-dd
   const items = await service.getEvents(date);
-  return res.json(items.map(i => ({ ...i, time: new Date(i.time).toISOString().substring(11, 16) })));
+  return res.json({ events: items.map(i => ({ ...i, time: new Date(i.time).toISOString().substring(11, 16) })) });
 }
 
 

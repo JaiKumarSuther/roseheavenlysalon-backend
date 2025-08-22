@@ -11,7 +11,18 @@ export async function signup(req, res) {
   try {
     const result = await service.signup(req.body);
     if (result.error) return res.status(400).json({ message: result.error });
-    return res.status(201).json({ message: 'Signup successful, verification code sent', userId: result.userId });
+    
+    // Generate JWT token for immediate login
+    const token = sign(result.user);
+    
+    // Get full user data
+    const fullUser = await service.getById(result.user.id);
+    
+    return res.status(201).json({ 
+      message: 'Signup successful! You are now logged in.', 
+      token,
+      user: fullUser
+    });
   } catch (e) {
     return res.status(500).json({ message: 'Signup failed', error: e.message });
   }
@@ -22,16 +33,22 @@ export async function verifyOtp(req, res) {
   const result = await service.verifyOtp(otp);
   if (result.error) return res.status(400).json({ message: result.error });
   const token = sign(result.user);
-  return res.json({ message: 'Verified', token });
+  return res.json({ message: 'OTP verified', token });
 }
 
 export async function login(req, res) {
   const { email, password } = req.body;
   const result = await service.login(email, password);
-  if (result?.code === 'NOT_VERIFIED') return res.status(403).json({ message: result.error });
   if (result.error) return res.status(400).json({ message: result.error });
   const token = sign(result.user);
-  return res.json({ token, user: { id: result.user.id, email: result.user.email, user_type: result.user.user_type } });
+  
+  // Get full user data
+  const fullUser = await service.getById(result.user.id);
+  
+  return res.json({ 
+    token, 
+    user: fullUser 
+  });
 }
 
 export async function forgotPassword(req, res) {
@@ -50,7 +67,7 @@ export async function resetPassword(req, res) {
 
 export async function me(req, res) {
   const me = await service.getById(req.user.id);
-  return res.json(me);
+  return res.json({ ...me, address: me.address1 });
 }
 
 

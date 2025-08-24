@@ -63,12 +63,59 @@ export async function listToday() {
   return prisma.event.findMany({ where: { status: 1, date: { gte: start, lte: end } }, orderBy: [{ date: 'asc' }, { time: 'asc' }] });
 }
 
-export function updateStatus(id, remarks) {
-  return prisma.event.update({ where: { id: Number(id) }, data: { remarks, status: 0 } });
+export async function listAll() {
+  return prisma.event.findMany({ 
+    where: { status: 1 }, 
+    orderBy: [{ date: 'desc' }, { time: 'asc' }] 
+  });
 }
 
-export function searchByName(q) {
-  return prisma.event.findMany({ where: { name: { contains: q }, status: 1 }, orderBy: [{ date: 'asc' }, { time: 'asc' }] });
+export async function listByDate(date) {
+  const parsedDate = new Date(date);
+  const start = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+  const end = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate(), 23, 59, 59);
+  
+  return prisma.event.findMany({ 
+    where: { 
+      status: 1, 
+      date: { gte: start, lte: end } 
+    }, 
+    orderBy: [{ date: 'asc' }, { time: 'asc' }] 
+  });
+}
+
+export async function listByDateRange(startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  end.setHours(23, 59, 59, 999);
+  
+  return prisma.event.findMany({ 
+    where: { 
+      status: 1, 
+      date: { gte: start, lte: end } 
+    }, 
+    orderBy: [{ date: 'asc' }, { time: 'asc' }] 
+  });
+}
+
+export async function searchByName(query) {
+  return prisma.event.findMany({
+    where: {
+      status: 1,
+      name: {
+        contains: query,
+        mode: 'insensitive'
+      }
+    },
+    orderBy: [{ date: 'desc' }, { time: 'asc' }]
+  });
+}
+
+export function updateStatus(id, status) {
+  return prisma.event.update({
+    where: { id: parseInt(id) },
+    data: { remarks: status }
+  });
 }
 
 

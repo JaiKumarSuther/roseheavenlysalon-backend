@@ -49,9 +49,41 @@ export const endpoints = [
   {
     path: '/api/bookings/today',
     method: 'GET',
-    description: 'Admin: today’s active bookings',
+    description: 'Admin: today\'s active bookings',
     params: [],
     attributes: [],
+    sampleRequest: {},
+    sampleResponse: [{ id: 1 }]
+  },
+  {
+    path: '/api/bookings/all',
+    method: 'GET',
+    description: 'Admin: get all bookings',
+    params: [],
+    attributes: [],
+    sampleRequest: {},
+    sampleResponse: [{ id: 1 }]
+  },
+  {
+    path: '/api/bookings/date/:date',
+    method: 'GET',
+    description: 'Admin: get bookings by specific date',
+    params: ['date'],
+    attributes: [
+      { name: 'date', in: 'path', type: 'string', required: true, description: 'YYYY-MM-DD date', example: '2025-01-20' }
+    ],
+    sampleRequest: {},
+    sampleResponse: [{ id: 1 }]
+  },
+  {
+    path: '/api/bookings/range',
+    method: 'GET',
+    description: 'Admin: get bookings by date range',
+    queryParams: ['start', 'end'],
+    attributes: [
+      { name: 'start', in: 'query', type: 'string', required: true, description: 'Start date YYYY-MM-DD', example: '2025-01-01' },
+      { name: 'end', in: 'query', type: 'string', required: true, description: 'End date YYYY-MM-DD', example: '2025-01-31' }
+    ],
     sampleRequest: {},
     sampleResponse: [{ id: 1 }]
   },
@@ -170,7 +202,11 @@ router.post(
   controller.cancelBookingByDateTime
 );
 
+// Admin routes
 router.get('/today', requireAuth, requireAdmin, controller.listTodayBookings);
+router.get('/all', requireAuth, requireAdmin, controller.listAllBookings);
+router.get('/date/:date', requireAuth, requireAdmin, validate(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), 'params'), controller.listBookingsByDate);
+router.get('/range', requireAuth, requireAdmin, validate(z.object({ start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), 'query'), controller.listBookingsByDateRange);
 router.post('/:id/done', requireAuth, requireAdmin, controller.markDone);
 router.post('/:id/cancel', requireAuth, requireAdmin, controller.markCancelled);
 router.post('/:id/reschedule', requireAuth, requireAdmin, controller.markRescheduled);

@@ -32,9 +32,50 @@ export const endpoints = [
       password: "secret123",
     },
     sampleResponse: {
-      message: "Signup successful",
-      userId: 1,
+      message: "OTP sent successfully",
+      email: "jane@example.com",
     },
+  },
+  {
+    path: "/api/auth/verify-signup-otp",
+    method: "POST",
+    description: "Verify signup OTP and complete registration",
+    params: ["email", "otp"],
+    attributes: [
+      { name: "email", in: "body", type: "string", required: true, description: "Email used during signup", example: "jane@example.com" },
+      { name: "otp", in: "body", type: "string|number", required: true, description: "6-digit code sent via email", example: 123456 }
+    ],
+    sampleRequest: { 
+      email: "jane@example.com",
+      otp: 123456 
+    },
+    sampleResponse: { 
+      message: "Email verified successfully! You are now logged in.", 
+      token: "<jwt>",
+      user: { id: 1, email: "jane@example.com"}
+    },
+  },
+  {
+    path: "/api/auth/resend-signup-otp",
+    method: "POST",
+    description: "Resend signup OTP to email",
+    params: ["email"],
+    attributes: [
+      { name: "email", in: "body", type: "string", required: true, description: "Email to resend OTP", example: "jane@example.com" }
+    ],
+    sampleRequest: { email: "jane@example.com" },
+    sampleResponse: { message: "New OTP sent successfully" },
+  },
+  {
+    path: "/api/auth/resend-login-otp",
+    method: "POST",
+    description: "Resend OTP for unverified users trying to login",
+    params: ["email"],
+    attributes: [
+      { name: "email", in: "body", type: "string", required: true, description: "Email to resend OTP", example: "jane@example.com" }
+    ],
+    sampleRequest: { email: "jane@example.com" },
+    sampleResponse: { message: "New verification code sent successfully" },
   },
   {
     path: "/api/auth/verify-otp",
@@ -114,6 +155,22 @@ const signupSchema = z.object({
   password: z.string().min(8),
 });
 router.post("/signup", validate(signupSchema), controller.signup);
+
+const verifySignupOtpSchema = z.object({
+  email: z.string().email(),
+  otp: z.union([z.string(), z.number()]),
+});
+router.post("/verify-signup-otp", validate(verifySignupOtpSchema), controller.verifySignupOtp);
+
+const resendSignupOtpSchema = z.object({
+  email: z.string().email(),
+});
+router.post("/resend-signup-otp", validate(resendSignupOtpSchema), controller.resendSignupOtp);
+
+const resendLoginOtpSchema = z.object({
+  email: z.string().email(),
+});
+router.post("/resend-login-otp", validate(resendLoginOtpSchema), controller.resendOtpForLogin);
 
 router.post(
   "/login",

@@ -52,6 +52,38 @@ export async function listTodayBookings(req, res) {
   return res.json(rows);
 }
 
+export async function listAllBookings(req, res) {
+  try {
+    const bookings = await service.listAll();
+    return res.json(bookings);
+  } catch (error) {
+    console.error('Error getting all bookings:', error);
+    return res.status(500).json({ error: 'Failed to get bookings' });
+  }
+}
+
+export async function listBookingsByDate(req, res) {
+  try {
+    const { date } = req.params;
+    const bookings = await service.listByDate(date);
+    return res.json(bookings);
+  } catch (error) {
+    console.error('Error getting bookings by date:', error);
+    return res.status(500).json({ error: 'Failed to get bookings' });
+  }
+}
+
+export async function listBookingsByDateRange(req, res) {
+  try {
+    const { start, end } = req.query;
+    const bookings = await service.listByDateRange(start, end);
+    return res.json(bookings);
+  } catch (error) {
+    console.error('Error getting bookings by date range:', error);
+    return res.status(500).json({ error: 'Failed to get bookings' });
+  }
+}
+
 export async function markDone(req, res) {
   await service.updateStatus(req.params.id, 'done');
   return res.json({ message: 'updated' });
@@ -68,9 +100,14 @@ export async function markRescheduled(req, res) {
 }
 
 export async function searchByName(req, res) {
-  const { q } = req.query;
-  const items = await service.searchByName(q);
-  return res.json(items);
+  try {
+    const { q } = req.query;
+    const bookings = await service.searchByName(q);
+    return res.json(bookings);
+  } catch (error) {
+    console.error('Error searching bookings:', error);
+    return res.status(500).json({ error: 'Failed to search bookings' });
+  }
 }
 
 

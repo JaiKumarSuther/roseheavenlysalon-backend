@@ -94,10 +94,7 @@ export async function markCancelled(req, res) {
   return res.json({ message: 'updated' });
 }
 
-export async function markRescheduled(req, res) {
-  await service.updateStatus(req.params.id, 'rescheduled');
-  return res.json({ message: 'updated' });
-}
+
 
 export async function searchByName(req, res) {
   try {

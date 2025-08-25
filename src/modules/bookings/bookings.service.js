@@ -43,7 +43,10 @@ export async function create({ name, phone, time, date, service1, service2, emai
 }
 
 export function listMine(user) {
-  return prisma.event.findMany({ where: { email: user.email, status: 1 }, orderBy: { date: 'asc' } });
+  return prisma.event.findMany({ 
+    where: { email: user.email }, 
+    orderBy: { date: 'asc' } 
+  });
 }
 
 export async function cancelByDateTime(user, date, time, remarks = 'cancelled') {
@@ -112,9 +115,20 @@ export async function searchByName(query) {
 }
 
 export function updateStatus(id, status) {
+  // Map status strings to numeric values
+  let statusValue = 1; // default to active (pending)
+  if (status === 'cancelled') {
+    statusValue = 0; // inactive
+  } else if (status === 'done') {
+    statusValue = 2; // completed
+  }
+  
   return prisma.event.update({
     where: { id: parseInt(id) },
-    data: { remarks: status }
+    data: { 
+      status: statusValue,
+      remarks: status 
+    }
   });
 }
 

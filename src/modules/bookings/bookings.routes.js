@@ -109,17 +109,7 @@ export const endpoints = [
     sampleRequest: {},
     sampleResponse: { message: 'updated' }
   },
-  {
-    path: '/api/bookings/:id/reschedule',
-    method: 'POST',
-    description: 'Admin: reschedule booking',
-    params: ['id'],
-    attributes: [
-      { name: 'id', in: 'path', type: 'number', required: true, description: 'Booking ID', example: 1 }
-    ],
-    sampleRequest: {},
-    sampleResponse: { message: 'updated' }
-  },
+
   {
     path: '/api/bookings/search?q=',
     method: 'GET',
@@ -209,7 +199,7 @@ router.get('/date/:date', requireAuth, requireAdmin, validate(z.object({ date: z
 router.get('/range', requireAuth, requireAdmin, validate(z.object({ start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), 'query'), controller.listBookingsByDateRange);
 router.post('/:id/done', requireAuth, requireAdmin, controller.markDone);
 router.post('/:id/cancel', requireAuth, requireAdmin, controller.markCancelled);
-router.post('/:id/reschedule', requireAuth, requireAdmin, controller.markRescheduled);
+
 router.get('/search', requireAuth, requireAdmin, validate(z.object({ q: z.string().min(1) }), 'query'), controller.searchByName);
 
 export default router;

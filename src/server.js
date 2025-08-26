@@ -14,7 +14,6 @@ import usersRoutes from './modules/users/users.routes.js';
 import uploadsRoutes from './modules/uploads/uploads.routes.js';
 import docsRoutes from './modules/docs/docs.routes.js';
 import analyticsRoutes from './modules/analytics/analytics.routes.js';
-import ratingsRoutes from './modules/ratings/ratings.routes.js';
 import { getEndpoints } from './modules/docs/docs.service.js';
 
 const app = express();
@@ -79,7 +78,6 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api/ratings', ratingsRoutes);
 
 // Docs UI and JSON (no view engine)
 app.use('/docs', docsRoutes);

@@ -85,7 +85,12 @@ export async function listBookingsByDateRange(req, res) {
 }
 
 export async function markDone(req, res) {
-  await service.updateStatus(req.params.id, 'done');
+  await service.updateStatus(req.params.id, 'completed');
+  return res.json({ message: 'updated' });
+}
+
+export async function markConfirmed(req, res) {
+  await service.updateStatus(req.params.id, 'confirmed');
   return res.json({ message: 'updated' });
 }
 

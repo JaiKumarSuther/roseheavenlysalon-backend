@@ -38,6 +38,7 @@ export async function create({ name, phone, time, date, service1, service2, emai
       service2,
       userId: userId,
       remarks: remarks || undefined,
+      status: 'pending', // Default status
     },
   });
 }
@@ -54,8 +55,8 @@ export async function cancelByDateTime(user, date, time, remarks = 'cancelled') 
   // Align with how times are stored (no explicit timezone suffix)
   const parsedTime = new Date(`1970-01-01T${time}:00`);
   return prisma.event.updateMany({
-    where: { email: user.email, date: parsedDate, time: parsedTime, status: 1 },
-    data: { status: 0, remarks },
+    where: { email: user.email, date: parsedDate, time: parsedTime, status: { not: 'completed' } },
+    data: { status: 'cancelled', remarks },
   });
 }
 
@@ -63,12 +64,11 @@ export async function listToday() {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
-  return prisma.event.findMany({ where: { status: 1, date: { gte: start, lte: end } }, orderBy: [{ date: 'asc' }, { time: 'asc' }] });
+  return prisma.event.findMany({ where: { status: { not: 'cancelled' }, date: { gte: start, lte: end } }, orderBy: [{ date: 'asc' }, { time: 'asc' }] });
 }
 
 export async function listAll() {
   return prisma.event.findMany({ 
-    where: { status: 1 }, 
     orderBy: [{ date: 'desc' }, { time: 'asc' }] 
   });
 }
@@ -80,7 +80,7 @@ export async function listByDate(date) {
   
   return prisma.event.findMany({ 
     where: { 
-      status: 1, 
+      status: { not: 'cancelled' }, 
       date: { gte: start, lte: end } 
     }, 
     orderBy: [{ date: 'asc' }, { time: 'asc' }] 
@@ -94,7 +94,7 @@ export async function listByDateRange(startDate, endDate) {
   
   return prisma.event.findMany({ 
     where: { 
-      status: 1, 
+      status: { not: 'cancelled' }, 
       date: { gte: start, lte: end } 
     }, 
     orderBy: [{ date: 'asc' }, { time: 'asc' }] 
@@ -104,7 +104,6 @@ export async function listByDateRange(startDate, endDate) {
 export async function searchByName(query) {
   return prisma.event.findMany({
     where: {
-      status: 1,
       name: {
         contains: query,
         mode: 'insensitive'
@@ -115,12 +114,14 @@ export async function searchByName(query) {
 }
 
 export function updateStatus(id, status) {
-  // Map status strings to numeric values
-  let statusValue = 1; // default to active (pending)
+  // Map status strings to new status values
+  let statusValue = 'pending'; // default to pending
   if (status === 'cancelled') {
-    statusValue = 0; // inactive
-  } else if (status === 'done') {
-    statusValue = 2; // completed
+    statusValue = 'cancelled';
+  } else if (status === 'done' || status === 'completed') {
+    statusValue = 'completed';
+  } else if (status === 'confirmed') {
+    statusValue = 'confirmed';
   }
   
   return prisma.event.update({

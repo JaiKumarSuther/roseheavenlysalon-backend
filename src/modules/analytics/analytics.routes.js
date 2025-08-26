@@ -17,8 +17,7 @@ export const endpoints = [
     sampleResponse: {
       totalBookings: 156,
       totalRevenue: 23450,
-      totalCustomers: 89,
-      averageRating: 4.8
+      totalCustomers: 89
     }
   },
   {
@@ -33,7 +32,7 @@ export const endpoints = [
     sampleResponse: {
       completed: 142,
       cancelled: 8,
-      rescheduled: 6,
+      confirmed: 6,
       pending: 12
     }
   },
@@ -62,8 +61,7 @@ export const endpoints = [
     sampleResponse: {
       newCustomers: 23,
       returningCustomers: 66,
-      averageVisitFrequency: 2.3,
-      customerSatisfaction: 4.8
+      averageVisitFrequency: 2.3
     }
   },
   {
@@ -111,8 +109,7 @@ export const endpoints = [
     sampleResponse: {
       newCustomers: 23,
       returningCustomers: 66,
-      averageVisitFrequency: 2.3,
-      customerSatisfaction: 4.8
+      averageVisitFrequency: 2.3
     }
   }
 ];

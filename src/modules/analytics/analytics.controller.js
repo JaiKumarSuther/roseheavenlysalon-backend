@@ -25,21 +25,28 @@ export const getDashboardStats = async (req, res) => {
     // Get completed bookings
     const completedBookings = await prisma.event.count({
       where: {
-        remarks: 'done'
+        status: 'completed'
       }
     });
 
     // Get cancelled bookings
     const cancelledBookings = await prisma.event.count({
       where: {
-        remarks: 'cancelled'
+        status: 'cancelled'
       }
     });
 
-    // Get rescheduled bookings
-    const rescheduledBookings = await prisma.event.count({
+    // Get confirmed bookings
+    const confirmedBookings = await prisma.event.count({
       where: {
-        remarks: 'rescheduled'
+        status: 'confirmed'
+      }
+    });
+
+    // Get pending bookings
+    const pendingBookings = await prisma.event.count({
+      where: {
+        status: 'pending'
       }
     });
 
@@ -53,31 +60,17 @@ export const getDashboardStats = async (req, res) => {
     // Calculate total revenue (assuming each booking has a fixed price for now)
     // In a real scenario, you'd have a pricing table
     const basePrice = 150; // Average service price
-    const totalRevenue = totalBookings * basePrice;
-
-    // Calculate real average rating from ratings table
-    const ratingsResult = await prisma.rating.aggregate({
-      _avg: {
-        rating: true
-      },
-      _count: {
-        rating: true
-      }
-    });
-
-    const averageRating = ratingsResult._avg.rating || 0;
-    const totalRatings = ratingsResult._count.rating || 0;
+    const totalRevenue = completedBookings * basePrice;
 
     res.json({
       totalBookings,
       todayBookings,
       completedBookings,
       cancelledBookings,
-      rescheduledBookings,
+      confirmedBookings,
+      pendingBookings,
       totalUsers,
-      totalRevenue,
-      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
-      totalRatings
+      totalRevenue
     });
   } catch (error) {
     console.error('Error getting dashboard stats:', error);
@@ -110,29 +103,29 @@ export const getBookingStats = async (req, res) => {
         endDate = endOfWeek(now);
     }
 
-    const [completed, cancelled, rescheduled, pending] = await Promise.all([
+    const [completed, cancelled, confirmed, pending] = await Promise.all([
       prisma.event.count({
         where: {
           date: { gte: startDate, lte: endDate },
-          remarks: 'done'
+          status: 'completed'
         }
       }),
       prisma.event.count({
         where: {
           date: { gte: startDate, lte: endDate },
-          remarks: 'cancelled'
+          status: 'cancelled'
         }
       }),
       prisma.event.count({
         where: {
           date: { gte: startDate, lte: endDate },
-          remarks: 'rescheduled'
+          status: 'confirmed'
         }
       }),
       prisma.event.count({
         where: {
           date: { gte: startDate, lte: endDate },
-          remarks: { not: { in: ['done', 'cancelled', 'rescheduled'] } }
+          status: 'pending'
         }
       })
     ]);
@@ -140,7 +133,7 @@ export const getBookingStats = async (req, res) => {
     res.json({
       completed,
       cancelled,
-      rescheduled,
+      confirmed,
       pending
     });
   } catch (error) {
@@ -188,13 +181,13 @@ export const getRevenueStats = async (req, res) => {
       prisma.event.count({
         where: {
           date: { gte: startDate, lte: endDate },
-          remarks: 'done'
+          status: 'completed'
         }
       }),
       prisma.event.count({
         where: {
           date: { gte: previousStartDate, lte: previousEndDate },
-          remarks: 'done'
+          status: 'completed'
         }
       })
     ]);
@@ -240,20 +233,10 @@ export const getCustomerStats = async (req, res) => {
     const totalBookings = await prisma.event.count();
     const averageVisitFrequency = totalCustomers > 0 ? (totalBookings / totalCustomers) : 0;
 
-    // Calculate real customer satisfaction from ratings
-    const satisfactionResult = await prisma.rating.aggregate({
-      _avg: {
-        rating: true
-      }
-    });
-
-    const customerSatisfaction = satisfactionResult._avg.rating || 0;
-
     res.json({
       newCustomers,
       returningCustomers,
-      averageVisitFrequency: Math.round(averageVisitFrequency * 10) / 10,
-      customerSatisfaction: Math.round(customerSatisfaction * 10) / 10
+      averageVisitFrequency: Math.round(averageVisitFrequency * 10) / 10
     });
   } catch (error) {
     console.error('Error getting customer stats:', error);
@@ -309,7 +292,7 @@ export const getMonthlyStats = async (req, res) => {
       const bookings = await prisma.event.count({
         where: {
           date: { gte: startDate, lte: endDate },
-          remarks: 'done'
+          status: 'completed'
         }
       });
 
@@ -383,20 +366,10 @@ export const getCustomerInsights = async (req, res) => {
     const totalBookings = await prisma.event.count();
     const averageVisitFrequency = totalCustomers > 0 ? (totalBookings / totalCustomers) : 0;
 
-    // Calculate real customer satisfaction from ratings
-    const satisfactionResult = await prisma.rating.aggregate({
-      _avg: {
-        rating: true
-      }
-    });
-
-    const customerSatisfaction = satisfactionResult._avg.rating || 0;
-
     res.json({
       newCustomers,
       returningCustomers,
-      averageVisitFrequency: Math.round(averageVisitFrequency * 10) / 10,
-      customerSatisfaction: Math.round(customerSatisfaction * 10) / 10
+      averageVisitFrequency: Math.round(averageVisitFrequency * 10) / 10
     });
   } catch (error) {
     console.error('Error getting customer insights:', error);

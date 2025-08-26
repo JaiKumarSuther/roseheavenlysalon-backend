@@ -8,7 +8,10 @@ export async function getCounts(year, month) {
 
   const rows = await prisma.event.groupBy({
     by: ['date'],
-    where: { status: 1, date: { gte: start, lte: end } },
+    where: { 
+      status: { not: 'cancelled' }, 
+      date: { gte: start, lte: end } 
+    },
     _count: { _all: true },
     orderBy: { date: 'asc' },
   });
@@ -32,12 +35,49 @@ export async function getEvents(date) {
         gte: startOfDay, 
         lte: endOfDay 
       }, 
-      status: 1 
+      status: { not: 'cancelled' }
     },
-    select: { service1: true, service2: true, time: true, name: true, phone: true },
+    select: { 
+      id: true,
+      service1: true, 
+      service2: true, 
+      time: true, 
+      name: true, 
+      phone: true,
+      status: true,
+      email: true
+    },
     orderBy: { time: 'asc' },
   });
   
+  return events;
+}
+
+export async function getMonthlyEvents(year, month) {
+  const y = Number(year) || new Date().getFullYear();
+  const m = Number(month) || new Date().getMonth() + 1;
+  const start = new Date(y, m - 1, 1);
+  const end = new Date(y, m, 0, 23, 59, 59);
+
+  const events = await prisma.event.findMany({
+    where: { 
+      status: { not: 'cancelled' }, 
+      date: { gte: start, lte: end } 
+    },
+    select: {
+      id: true,
+      name: true,
+      service1: true,
+      service2: true,
+      time: true,
+      date: true,
+      status: true,
+      phone: true,
+      email: true
+    },
+    orderBy: [{ date: 'asc' }, { time: 'asc' }],
+  });
+
   return events;
 }
 

@@ -90,7 +90,18 @@ export const endpoints = [
   {
     path: '/api/bookings/:id/done',
     method: 'POST',
-    description: 'Admin: mark booking done',
+    description: 'Admin: mark booking completed',
+    params: ['id'],
+    attributes: [
+      { name: 'id', in: 'path', type: 'number', required: true, description: 'Booking ID', example: 1 }
+    ],
+    sampleRequest: {},
+    sampleResponse: { message: 'updated' }
+  },
+  {
+    path: '/api/bookings/:id/confirm',
+    method: 'POST',
+    description: 'Admin: mark booking confirmed',
     params: ['id'],
     attributes: [
       { name: 'id', in: 'path', type: 'number', required: true, description: 'Booking ID', example: 1 }
@@ -198,6 +209,7 @@ router.get('/all', requireAuth, requireAdmin, controller.listAllBookings);
 router.get('/date/:date', requireAuth, requireAdmin, validate(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), 'params'), controller.listBookingsByDate);
 router.get('/range', requireAuth, requireAdmin, validate(z.object({ start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), 'query'), controller.listBookingsByDateRange);
 router.post('/:id/done', requireAuth, requireAdmin, controller.markDone);
+router.post('/:id/confirm', requireAuth, requireAdmin, controller.markConfirmed);
 router.post('/:id/cancel', requireAuth, requireAdmin, controller.markCancelled);
 
 router.get('/search', requireAuth, requireAdmin, validate(z.object({ q: z.string().min(1) }), 'query'), controller.searchByName);
